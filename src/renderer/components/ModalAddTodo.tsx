@@ -1,41 +1,53 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import React, { useState } from 'react';
+import { createTodo } from '../ApiCalls/Todos';
+import { Todo } from '../types';
 import DatePicker from './DatePicker';
 
-/* eslint-disable jsx-a11y/label-has-associated-control */
-export default function ModalAddTodo() {
-  const [todo, setTodo] = useState({
-    todoName: '',
+type Props = {
+  openCloseModal: () => void;
+};
+
+export default function ModalAddTodo({ openCloseModal }: Props) {
+  const queryClient = useQueryClient();
+  const [todo, setTodo] = useState('');
+
+  const [todoDate, setTodoDate] = useState({
+    startDate: null,
+    endDate: null,
   });
+
+  const { mutateAsync: addTodoMutation } = useMutation({
+    mutationFn: createTodo,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['getTodos'] });
+    },
+  });
+
   const onChangeForm = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setTodo({
-      ...todo,
-      [e.target.name]: e.target.value,
-    });
-  };
-  const closeModal = () => {
-    document.getElementById('modal-add-todo')?.close();
+    setTodo(e.target.value);
   };
 
   const submitAddTodo = async (
     e: React.FormEvent<HTMLFormElement>,
   ): Promise<void> => {
-    // eslint-disable-next-line prefer-destructuring
-
     e.preventDefault();
-    window.electron.ipcRenderer.sendMessage('create-todos', todo);
-    window.electron.ipcRenderer.on('success-create-todo', (msg) => {
-      console.log(msg);
-      closeModal();
-    });
+
+    const newTodo = {
+      todoName: todo,
+      todoDate: todoDate.startDate,
+    } as unknown as Todo;
+    await addTodoMutation(newTodo);
+    openCloseModal();
   };
 
   return (
     <div>
       <dialog
         id="modal-add-todo"
-        className="modal modal-bottom sm:modal-middle"
+        className="modal modal-bottom sm:modal-middle "
       >
-        <div className="modal-box">
+        <div className="modal-box ">
           <h3 className="font-bold text-lg">Modal Add Todo</h3>
           <form onSubmit={submitAddTodo} className="flex flex-col gap-3">
             <label className="form-control w-full max-w-xs">
@@ -50,26 +62,24 @@ export default function ModalAddTodo() {
                 name="todoName"
               />
             </label>
-            <DatePicker />
-            <div>
+            <div className="w-80">
+              <div className="label">
+                <span className="label-text">Todo Date</span>
+              </div>
+              <DatePicker todoDate={todoDate} setTodoDate={setTodoDate} />
+            </div>
+            <div className="flex w-full gap-3">
               <button type="submit" className="btn btn-primary">
                 Save
               </button>
+              <form method="dialog">
+                <button onClick={openCloseModal} type="button" className="btn">
+                  Close
+                </button>
+              </form>
             </div>
           </form>
-          <div className="modal-action">
-            <form method="dialog">
-              <button
-                onClick={() =>
-                  document.getElementById('modal-add-todo')?.close()
-                }
-                type="button"
-                className="btn"
-              >
-                Close
-              </button>
-            </form>
-          </div>
+          <div className="modal-action"></div>
         </div>
       </dialog>
     </div>

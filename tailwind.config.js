@@ -4,6 +4,7 @@ module.exports = {
   content: [
     './src/renderer/**/*.{js,jsx,ts,tsx,ejs}',
     './node_modules/tailwind-datepicker-react/dist/**/*.js',
+    './node_modules/react-tailwindcss-datepicker/dist/index.esm.js',
   ],
   darkMode: 'media', // or 'media' or 'class'
   theme: {

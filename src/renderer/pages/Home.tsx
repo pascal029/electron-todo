@@ -1,8 +1,16 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
+import { useState } from 'react';
 import ModalAddTodo from '../components/ModalAddTodo';
 import TodosComponent from '../components/Todos';
 
 export default function Home() {
+  const [openModal, setOpenModal] = useState(false);
+
+  const openCloseModal = (): void => {
+    const modalAddTodo = document.getElementById('modal-add-todo') as any;
+    !openModal ? modalAddTodo?.showModal() : modalAddTodo?.close();
+    setOpenModal(!openModal);
+  };
   return (
     <div className="flex flex-col w-full min-h-screen">
       <div className="flex flex-col justify-between">
@@ -10,9 +18,7 @@ export default function Home() {
         <div className="divider" />
         <div>
           <button
-            onClick={() =>
-              document.getElementById('modal-add-todo')?.showModal()
-            }
+            onClick={openCloseModal}
             type="button"
             className="btn btn-sm btn-success"
           >
@@ -24,7 +30,7 @@ export default function Home() {
         <TodosComponent />
       </div>
 
-      <ModalAddTodo />
+      <ModalAddTodo openCloseModal={openCloseModal} />
     </div>
   );
 }
